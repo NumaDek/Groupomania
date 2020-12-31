@@ -1,15 +1,19 @@
 <template>
     <section class="comment-section">
         <article class="comments">
-            <h3>Poster name</h3>
-            <p>Salut ! Ceci est un commentaire.</p>
+            <h3>{{ poster }}</h3>
+            <p>{{ comment }}</p>
         </article>
     </section>
 </template>
 
 <script>
     export default {
-        name: 'Comments'
+        name: 'Comments',
+        props: {
+            poster: String,
+            comment : String
+        }
     }
 </script>
 

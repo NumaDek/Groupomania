@@ -6,13 +6,13 @@ const multer = require('../middlewares/multer-config');
 const router = express.Router('');
 
 // CREATE
-router.post('/', auth, multer, controller.create);
+router.post('/', /*auth, */multer, controller.create);
 // READ
 router.get('/', auth, controller.getAll);
 router.get('/:id', auth, controller.getOne);
 // UPDATE
 router.put('/:id', auth, multer, controller.update);
-router.post('/:id/like', auth, controller.like);
+router.post('/like', auth, controller.like);
 // DELETE
 router.delete('/:id', auth, controller.delete);
 

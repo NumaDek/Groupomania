@@ -1,7 +1,7 @@
 ﻿<template>
     <nav class="navigation">
         <router-link to="/">
-            <img src="@/assets/icon-left-font-monochrome-white.png" alt="Groupomania Logo" height="100" class="nav-button" />
+            <img src="@/assets/icon-left-font-monochrome-white-slim.png" alt="Groupomania Logo" height="100" class="nav-button" />
         </router-link>
         <div class="nav-button">
             <router-link to="/post" class="nav-button">Poster</router-link>

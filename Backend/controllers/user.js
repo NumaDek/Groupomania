@@ -9,14 +9,13 @@ exports.signup = (req, res, next) => {
 exports.login = (req, res, next) => {
     console.log('Login :');
     console.log(req.body);
-    if (req.body.email == 'numadek@free.fr') {
+    if (req.body.email == 'numadek@gmail.com' && req.body.password == 'salut') {
         res.status(200).json({
-            userId: 'numadek@free.fr',
+            userId: req.body.email,
             token: jwt.sign(
-                { userId: 'numadek@free.fr' },
+                { userId: req.body.email },
                 'SEL',
-                { expiresIn: '24h' }
-            )
+                { expiresIn: '24h' })
         });
     }
     else {

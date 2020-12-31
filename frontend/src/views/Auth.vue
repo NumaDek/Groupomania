@@ -3,23 +3,23 @@
         <img src="@/assets/icon-left-font-monochrome-white.png" alt="Groupomania Logo" class="Logo" />
         <div class="form-div">
             <h2>Authentification</h2>
-            <form action="http://localhost:3000/api/auth/login" method="post" class="form">
+            <form v-on:submit.prevent="login" class="form" id="login">
                 <div class="form">
                     <label for="lemail">Adresse mail: </label>
-                    <input type="email" name="email" id="lemail" required>
+                    <input type="email" name="lemail" id="lemail" required>
                 </div>
                 <div class="form">
                     <label for="lpassword">Mot de passe: </label>
-                    <input type="password" name="password" id="lpassword" required>
+                    <input type="password" name="lpassword" id="lpassword" required>
                 </div>
                 <div>
-                    <input type="submit" value="S'authentifier" />
+                    <input  type="submit" value="S'authentifier" />
                 </div>
             </form>
         </div>
         <div class="form-div">
             <h2>Inscription</h2>
-            <form action="http://localhost:3000/api/auth/signup" method="post" class="form">
+            <form v-on:submit.prevent="signUp" class="form" id="signup">
                 <div class="form">
                     <label for="lastname">Nom: </label>
                     <input type="text" name="lastname" id="lastname" required>
@@ -46,7 +46,34 @@
 
 <script>
     export default {
-        name: 'Auth'
+        name: 'Auth',
+        computed: {
+
+        },
+        methods: {
+            async login() {
+                console.log('Tentative de login');
+                const form = document.getElementById('login');
+                const payload = JSON.stringify({ 'email': form.lemail.value, 'password': form.lpassword.value });
+                console.log(payload);
+                let url = 'http://localhost:3000/api/auth/login';
+                let options = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payload };
+                const response = await fetch(url, options);
+                const data = await response.json();
+                console.log(data);
+            },
+            async signUp() {
+                console.log('Tentative de signup');
+                const form = document.getElementById('signup');
+                const payload = JSON.stringify({ 'email': form.email.value, 'password': form.password.value, 'lastname' : form.lastname.value, 'firstname' : form.firstname.value});
+                console.log(payload);
+                let url = 'http://localhost:3000/api/auth/signup';
+                let options = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payload };
+                const response = await fetch(url, options);
+                const data = await response.json();
+                console.log(data);
+            }
+        }
     }
 </script>
 

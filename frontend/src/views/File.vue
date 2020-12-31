@@ -4,33 +4,34 @@
         <section class="container">
             <article class="post">
                 <h2>{{ title }}</h2>
-                <img :src="getImgUrl(file)" alt="post" class="img-file" />
+                <img v-bind:src="file" alt="post" class="img-file" />
                 <div class="container-a">
-                    <button v-on:click="points += 1" class="like"></button>
-                    <button v-on:click="points -= 1" class="dislike"></button>
+                    <button v-on:click="points += 1; like(id, 1)" class="like"></button>
+                    <button v-on:click="points -= 1; like(id, -1)" class="dislike"></button>
                     <span>{{ points }} points</span>
-                    <span>{{ comments }} commentaires</span>
+                    <span>{{ commentNbr }} commentaires</span>
                 </div>
             </article>
         </section>
-        <Comments />
+        <Comments poster="Robert" comment="Scrub"/>
     </main>
 </template>
 
 <script>
-import Banner from "@/components/Banner.vue";
-import Comments from "@/components/Comments.vue"
+    import Banner from "@/components/Banner.vue";
+    import Comments from "@/components/Comments.vue"
 
     export default {
         name: 'Content',
         data() {
             return {
-                id: 1,
-                title: "Titre du post",
-                file: "test.jpg",
-                points: 420,
-                comments: 69
-            }
+                id: 0,
+                title: "Title",
+                file: "",
+                points: 0,
+                commentNbr: 0,
+                comments: ""
+            };
         },
         computed: {
 
@@ -39,12 +40,24 @@ import Comments from "@/components/Comments.vue"
 
         },
         methods: {
-            getImgUrl(file) {
-                return require('../assets/' + file)
-            },
-            updatePoints() {
-                this.points += 1;
+            async like(id, like) {
+                const payload = JSON.stringify({ 'id': id, 'like': like });
+                let url = 'http://localhost:3000/api/gag/like';
+                let options = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payload };
+                await fetch(url, options);
             }
+        },
+        created: async function () {
+            let id = window.location.href.split('/');
+            let url = 'http://localhost:3000/api/gag/' + id[id.length - 1];
+            let options = { method: 'GET' };
+            const response = await fetch(url, options);
+            const data = await response.json();
+            this.id = data.id;
+            this.title = data.title;
+            this.file = data.imageUrl;
+            this.points = data.points;
+            this.commentNbr = data.commentNbr;
         },
         components: {
             Banner,
@@ -60,7 +73,6 @@ import Comments from "@/components/Comments.vue"
         justify-content: center;
         background-color: black;
         color: white;
-        padding-bottom: 80px;
     }
 
     .container-a {
@@ -74,7 +86,7 @@ import Comments from "@/components/Comments.vue"
     }
 
     .img-file {
-        max-width: 500px;
+        width: 500px;
         max-height: 500px;
     }
 

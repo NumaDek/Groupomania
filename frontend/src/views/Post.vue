@@ -2,21 +2,21 @@
     <div>
         <Banner />
         <div class="container">
-            <form action="http://localhost:3000/api/gag/" method="post" enctype="multipart/form-data" class="form">
+            <form v-on:submit.prevent="submitFile" id="form" class="form">
                 <div class="form">
                     <label for="title">Titre: </label>
                     <input type="text" name="title" id="title" required>
                 </div>
                 <div class="form">
-                    <label for="desc">description: </label>
-                    <input type="text" name="desc" id="desc" required>
+                    <label for="description">description: </label>
+                    <input type="text" name="description" id="description" required>
                 </div>
                 <div class="form">
                     <label for="file">fichier: </label>
                     <input type="file" name="file" id="file" required>
                 </div>
                 <div>
-                    <input type="submit" value="Soumette" />
+                    <input type="submit" name="image" value="Soumette" />
                 </div>
             </form>
         </div>
@@ -30,6 +30,19 @@
         name: 'Post',
         components: {
             Banner
+        },
+        methods: {
+            async submitFile() {
+                const formData = new FormData();
+                const form = document.getElementById('form');
+                const payload = JSON.stringify({ 'title': form.title.value, 'description': form.description.value });
+                formData.append('payload', payload);
+                const file = document.getElementById('file');
+                formData.append('image', file.files[0]);
+                let url = 'http://localhost:3000/api/gag/';
+                let options = { method: 'POST', body: formData };
+                await fetch(url, options);
+            }
         }
     }
 </script>
@@ -41,7 +54,6 @@
         justify-content: center;
         background-color: black;
         color: white;
-        padding-bottom: 80px;
     }
 
     form.form {
@@ -55,5 +67,11 @@
     label, input {
         display: table-cell;
         margin: 10px 0px 10px 10px;
+    }
+
+    .form {
+        padding: 10px;
+        border: 1px solid grey;
+        border-radius: 2px 2px;
     }
 </style>

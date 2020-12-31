@@ -3,12 +3,12 @@
         <section>
             <article v-for="post in fileBank" :key="post.id" class="post">
                 <router-link :to="'/gag/' + post.id"><h2>{{ post.title }}</h2></router-link>
-                <router-link :to="'/gag/' + post.id"><img :src="getImgUrl(post.file)" alt="post" class="img-file" /></router-link>
+                <router-link :to="'/gag/' + post.id"><img v-bind:src="post.imageUrl" alt="post" class="img-file" /></router-link>
                 <div class="container-a">
-                    <button v-on:click="post.points += 1" class="button button-like"></button>
-                    <button v-on:click="post.points -= 1" class="button button-dislike"></button>
+                    <button v-on:click="post.points += 1; like(post.id, 1)" class="button button-like"></button>
+                    <button v-on:click="post.points -= 1; like(post.id, -1)" class="button button-dislike"></button>
                     <span>{{ post.points }} points</span>
-                    <span>{{ post.comments }} commentaires</span>
+                    <span>{{ post.commentNbr }} commentaires</span>
                 </div>
             </article>
         </section>
@@ -55,15 +55,22 @@
         computed: {
             
         },
+        created: async function () {
+            let url = 'http://localhost:3000/api/gag/';
+            let options = { method: 'GET' };
+            const response = await fetch(url, options);
+            const posts = await response.json();
+            this.fileBank = posts;
+        },
         props: {
 
         },
         methods: {
-            getImgUrl(file) {
-                return require('../assets/' + file)
-            },
-            updatePoints() {
-                this.points += 1;
+            async like(id, like) {
+                const payload = JSON.stringify({ 'id': id, 'like': like });
+                let url = 'http://localhost:3000/api/gag/like';
+                let options = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body : payload};
+                await fetch(url, options);
             }
         }
     }
@@ -90,7 +97,7 @@
     }
 
     .img-file {
-        max-width: 500px;
+        width: 500px;
         max-height: 500px;
     }
 

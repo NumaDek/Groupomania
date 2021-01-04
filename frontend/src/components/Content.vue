@@ -20,46 +20,26 @@
         name: 'Content',
         data() {
             return {
-                fileBank: [
-                    {
-                        id: 1,
-                        title: "Titre du post",
-                        file: "test.jpg",
-                        points: 420,
-                        comments: 69
-                    },
-                    {
-                        id: 2,
-                        title: "Titre du post",
-                        file: "test.jpg",
-                        points: 420,
-                        comments: 69
-                    },
-                    {
-                        id: 3,
-                        title: "Titre du post",
-                        file: "test.jpg",
-                        points: 420,
-                        comments: 69
-                    },
-                    {
-                        id: 4,
-                        title: "Titre du post",
-                        file: "test.jpg",
-                        points: 420,
-                        comments: 69
-                    }
-                ]
+                fileBank: []
             }
         },
         computed: {
-            
+
         },
         created: async function () {
+            const token = localStorage.getItem('Token');
+            if (token == null) {
+                document.location.href = 'http://localhost:8080/#/auth';
+                return;
+            }
             let url = 'http://localhost:3000/api/gag/';
-            let options = { method: 'GET' };
-            const response = await fetch(url, options);
-            const posts = await response.json();
+            let options = { method: 'GET', headers: { 'authorization': 'Bearer ' + token } };
+            const res = await fetch(url, options);
+            if (res.status == 401) {
+                document.location.href = 'http://localhost:8080/#/auth';
+                return;
+            }
+            const posts = await res.json();
             this.fileBank = posts;
         },
         props: {
@@ -67,10 +47,17 @@
         },
         methods: {
             async like(id, like) {
+                const token = localStorage.getItem('Token');
+                if (token == null) {
+                    document.location.href = 'http://localhost:8080/#/auth';
+                    return;
+                }
                 const payload = JSON.stringify({ 'id': id, 'like': like });
                 let url = 'http://localhost:3000/api/gag/like';
-                let options = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body : payload};
-                await fetch(url, options);
+                let options = { method: 'POST', headers: { 'Content-Type': 'application/json', 'authorization': 'Bearer ' + token }, body : payload};
+                const res = await fetch(url, options);
+                if (res.status == 401)
+                    document.location.href = 'http://localhost:8080/#/auth';
             }
         }
     }

@@ -52,26 +52,26 @@
         },
         methods: {
             async login() {
-                console.log('Tentative de login');
                 const form = document.getElementById('login');
                 const payload = JSON.stringify({ 'email': form.lemail.value, 'password': form.lpassword.value });
-                console.log(payload);
                 let url = 'http://localhost:3000/api/auth/login';
                 let options = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payload };
-                const response = await fetch(url, options);
-                const data = await response.json();
-                console.log(data);
+                const res = await fetch(url, options);
+                const data = await res.json();
+                if (res.status == 200) {
+                    localStorage.setItem('Token', JSON.stringify(data));
+                    document.location.href = "http://localhost:8080/";
+                }
+                else
+                    alert('Email ou mot de passe incorrect.')
             },
             async signUp() {
-                console.log('Tentative de signup');
                 const form = document.getElementById('signup');
                 const payload = JSON.stringify({ 'email': form.email.value, 'password': form.password.value, 'lastname' : form.lastname.value, 'firstname' : form.firstname.value});
-                console.log(payload);
                 let url = 'http://localhost:3000/api/auth/signup';
                 let options = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payload };
                 const response = await fetch(url, options);
-                const data = await response.json();
-                console.log(data);
+                await response.json();
             }
         }
     }

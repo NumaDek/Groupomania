@@ -5,7 +5,7 @@
         </router-link>
         <div class="nav-button">
             <router-link to="/post" class="nav-button">Poster</router-link>
-            <router-link to="/profile" class="nav-button">Profil</router-link>
+            <router-link :to="'/profile/' + getUserId" class="nav-button">Profil</router-link>
             <router-link to="/auth">Login</router-link>
         </div>
     </nav>
@@ -13,7 +13,13 @@
 
 <script>
     export default {
-        name: 'Banner'
+        name: 'Banner',
+        computed: {
+            getUserId() {
+                const userId = JSON.parse(localStorage.getItem('Token')).userId;
+                return userId;
+            }
+        }
     }
 </script>
 
@@ -25,7 +31,6 @@
         justify-content: space-between;
         align-items: center;
     }
-
     a {
         color: white;
         text-decoration: none;

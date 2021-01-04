@@ -33,6 +33,11 @@
         },
         methods: {
             async submitFile() {
+                const token = localStorage.getItem('Token');
+                if (token == null) {
+                    document.location.href = 'http://localhost:8080/#/auth';
+                    return;
+                }
                 const formData = new FormData();
                 const form = document.getElementById('form');
                 const payload = JSON.stringify({ 'title': form.title.value, 'description': form.description.value });
@@ -40,8 +45,10 @@
                 const file = document.getElementById('file');
                 formData.append('image', file.files[0]);
                 let url = 'http://localhost:3000/api/gag/';
-                let options = { method: 'POST', body: formData };
-                await fetch(url, options);
+                let options = { method: 'POST', body: formData, headers: { 'authorization': 'Bearer ' + token } };
+                const res = await fetch(url, options);
+                if (res.status == 201)
+                    document.location.href = 'http://localhost:8080/';
             }
         }
     }

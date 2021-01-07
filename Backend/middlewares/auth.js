@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 
-const salt = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJhemVydHl1aW9wMCIsImlhdCI6MTYwOTc2NDEwOCwiZXhwIjoxNjA5ODUwNTA4fQ.yYqHi3qApbkRB0VxAceXUGzWsPek84qUZhcp6e1qlMM';
+const salt = 'qemrghermigherivqinvrnvqmernvidjvNDJCLBDCHVUQERBGERUIBGAUERIBVUBVERBMGQERUIBGUFVJVJQREVBURHVEQRUVBUMIBVUQIZEBVQEBQMEBMVUBUIEB';
 
 module.exports = (req, res, next) => {
     try {

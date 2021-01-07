@@ -3,8 +3,8 @@
         <article class="comments">
             <div class="title">
                 <h3>{{ poster }}</h3>
-                <button v-on:click="commentPoint += 1; like(0, 1)" class="button button-like"></button>
-                <button v-on:click="commentPoint -= 1; like(0, -1)" class="button button-dislike"></button>
+                <button v-on:click="commentPoint += 1; like(1)" class="button button-like"></button>
+                <button v-on:click="commentPoint -= 1; like(-1)" class="button button-dislike"></button>
                 <span>{{ commentPoint }} points</span>
             </div>
             <p class="comment">{{ comment }}</p>
@@ -29,13 +29,13 @@
 
         },
         methods: {
-            async like(id, like) {
+            async like(like) {
                 const token = localStorage.getItem('Token');
                 if (token == null) {
                     document.location.href = 'http://localhost:8080/#/auth';
                     return;
                 }
-                const payload = JSON.stringify({ 'id': id, 'like': like });
+                const payload = JSON.stringify({ 'commentId': this.commentId, 'like': like });
                 let url = 'http://localhost:3000/api/gag/comments/like/' + this.commentId;
                 let options = { method: 'POST', headers: { 'Content-Type': 'application/json', 'authorization': 'Bearer ' + token }, body: payload };
                 const res = await fetch(url, options);

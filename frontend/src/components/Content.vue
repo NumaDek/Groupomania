@@ -2,11 +2,11 @@
     <main class="container">
         <section>
             <article v-for="post in fileBank" :key="post.id" class="post">
-                <router-link :to="'/gag/' + post.id"><h2>{{ post.title }}</h2></router-link>
-                <router-link :to="'/gag/' + post.id"><img v-bind:src="post.imageUrl" alt="post" class="img-file" /></router-link>
+                <router-link :to="'/gag/' + post.postId"><h2>{{ post.title }}</h2></router-link>
+                <router-link :to="'/gag/' + post.postId"><img v-bind:src="post.imageUrl" alt="post" class="img-file" /></router-link>
                 <div class="container-a">
-                    <button v-on:click="post.points += 1; like(post.id, 1)" class="button button-like"></button>
-                    <button v-on:click="post.points -= 1; like(post.id, -1)" class="button button-dislike"></button>
+                    <button v-on:click="post.points += 1; like(post.postId, 1)" class="button button-like"></button>
+                    <button v-on:click="post.points -= 1; like(post.postId, -1)" class="button button-dislike"></button>
                     <span>{{ post.points }} points</span>
                     <span>{{ post.commentNbr }} commentaires</span>
                 </div>
@@ -46,13 +46,13 @@
 
         },
         methods: {
-            async like(id, like) {
+            async like(postId, like) {
                 const token = localStorage.getItem('Token');
                 if (token == null) {
                     document.location.href = 'http://localhost:8080/#/auth';
                     return;
                 }
-                const payload = JSON.stringify({ 'id': id, 'like': like });
+                const payload = JSON.stringify({ 'postId': postId, 'like': like });
                 let url = 'http://localhost:3000/api/gag/like';
                 let options = { method: 'POST', headers: { 'Content-Type': 'application/json', 'authorization': 'Bearer ' + token }, body : payload};
                 const res = await fetch(url, options);

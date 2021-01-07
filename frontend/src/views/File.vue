@@ -3,13 +3,14 @@
         <Banner />
         <section class="container">
             <article class="post">
-                <h2>{{ title }}</h2>
-                <img v-bind:src="file" alt="post" class="img-file" />
+                <h2>{{ file.title }}</h2>
+                <p>{{ file.description }}</p>
+                <img v-bind:src="file.imageUrl" alt="post" class="img-file" />
                 <div class="container-a">
-                    <button v-on:click="points += 1; like(id, 1)" class="like"></button>
-                    <button v-on:click="points -= 1; like(id, -1)" class="dislike"></button>
-                    <span>{{ points }} points</span>
-                    <span>{{ commentNbr }} commentaires</span>
+                    <button v-on:click="file.points += 1; like(file.postId, 1)" class="like"></button>
+                    <button v-on:click="file.points -= 1; like(file.postId, -1)" class="dislike"></button>
+                    <span>{{ file.points }} points</span>
+                    <span>{{ file.commentNbr }} commentaires</span>
                 </div>
             </article>
         </section>
@@ -30,7 +31,7 @@
         </section>
         <section class="container">
             <article v-for="comment in comments" :key="comment.commentId">
-                <Comments v-bind:poster="comment.name" v-bind:comment="comment.commentValue" v-bind:commentPoints="comment.commentPoints" v-bind:commentId="comment.commentId"/>
+                <Comments v-bind:poster="comment.posterName" v-bind:comment="comment.commentValue" v-bind:commentPoints="comment.commentPoints" v-bind:commentId="comment.commentId"/>
             </article>
         </section>
         <footer></footer>
@@ -45,12 +46,16 @@
         name: 'Content',
         data() {
             return {
-                id: 0,
-                title: "Title",
-                file: "",
-                points: 0,
-                commentNbr: 0,
-                comments: [],
+                file: {
+                    postId: 0,
+                    userId: 0,
+                    title: '',
+                    description: "",
+                    imageUrl: '',
+                    points: 0,
+                    commentNbr: 0
+                },
+                comments: []
             };
         },
         computed: {
@@ -66,7 +71,7 @@
                     document.location.href = 'http://localhost:8080/#/auth';
                     return;
                 }
-                const payload = JSON.stringify({ 'id': id, 'like': like });
+                const payload = JSON.stringify({ 'postId': id, 'like': like });
                 let url = 'http://localhost:3000/api/gag/like';
                 let options = { method: 'POST', headers: { 'Content-Type': 'application/json', 'authorization': 'Bearer ' + token }, body: payload };
                 const res = await fetch(url, options);
@@ -82,7 +87,7 @@
                 let id = window.location.href.split('/');
                 id = id[id.length - 1];
                 const form = document.getElementById('form');
-                const payload = JSON.stringify({ userId: JSON.parse(token).userId, 'comment': form.comment.value });
+                const payload = JSON.stringify({ 'userId': JSON.parse(token).userId, 'commentValue': form.comment.value });
                 let url = 'http://localhost:3000/api/gag/comments/' + id;
                 let options = { method: 'POST', body: payload, headers: { 'Content-Type': 'application/json', 'authorization': 'Bearer ' + token } };
                 const res = await fetch(url, options);
@@ -107,11 +112,12 @@
                 return;
             }
             const data = await res.json();
-            this.id = data.id;
-            this.title = data.title;
-            this.file = data.imageUrl;
-            this.points = data.points;
-            this.commentNbr = data.commentNbr;
+            this.file = data;
+            //this.id = data.id;
+            //this.title = data.title;
+            //this.imageUrl = data.imageUrl;
+            //this.points = data.points;
+            //this.commentNbr = data.commentNbr;
 
             url = 'http://localhost:3000/api/gag/comments/' + id[id.length - 1];
             options = { method: 'GET', headers: { 'authorization': 'Bearer ' + token } };
@@ -122,7 +128,6 @@
             }
             const commentsList = await res1.json();
             this.comments = commentsList;
-            
         },
         components: {
             Banner,

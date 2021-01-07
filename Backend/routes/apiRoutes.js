@@ -7,7 +7,7 @@ const router = express.Router('');
 
 // CREATE
 router.post('/', auth, multer, controller.create);
-router.post('/comments/:id', auth, multer, controller.create);
+router.post('/comments/:id', auth, multer, controller.createComment);
 // READ
 router.get('/', auth, controller.getAll);
 router.get('/:id', auth, controller.getOne);

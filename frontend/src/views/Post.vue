@@ -38,9 +38,10 @@
                     document.location.href = 'http://localhost:8080/#/auth';
                     return;
                 }
+                const userId = JSON.parse(token).userId;
                 const formData = new FormData();
                 const form = document.getElementById('form');
-                const payload = JSON.stringify({ 'title': form.title.value, 'description': form.description.value });
+                const payload = JSON.stringify({ 'userId': userId, 'title': form.title.value, 'description': form.description.value });
                 formData.append('payload', payload);
                 const file = document.getElementById('file');
                 formData.append('image', file.files[0]);

@@ -58,7 +58,7 @@
                 let options = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payload };
                 const res = await fetch(url, options);
                 const data = await res.json();
-                if (res.status == 200) {
+                if (res.status == 201) {
                     localStorage.setItem('Token', JSON.stringify(data));
                     document.location.href = "http://localhost:8080/";
                 }
@@ -70,9 +70,18 @@
                 const payload = JSON.stringify({ 'email': form.email.value, 'password': form.password.value, 'lastname' : form.lastname.value, 'firstname' : form.firstname.value});
                 let url = 'http://localhost:3000/api/auth/signup';
                 let options = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payload };
-                const response = await fetch(url, options);
-                await response.json();
+                const res = await fetch(url, options);
+                if (res.status == 201) {
+                    // Va chier
+                }
+                else
+                    alert('An error has occured');
             }
+        },
+        created: function () {
+            const token = localStorage.getItem('Token');
+            if (token != null)
+                document.location.href = 'http://localhost:8080/';
         }
     }
 </script>

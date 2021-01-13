@@ -1,36 +1,40 @@
 <template>
-    <div>
+    <main>
         <Banner />
+        <section v-if="admin == false" class="container">
+            <h1>Votre Profil</h1>
+            <article v-for="post in fileBank" :key="post.id" class="post">
+                <router-link :to="'/gag/' + post.postId"><h2>{{ post.title }}</h2></router-link>
+                <router-link :to="'/gag/' + post.postId"><img v-bind:src="post.imageUrl" alt="post" class="img-file" /></router-link>
+                <div class="container-a">
+                    <button v-on:click="post.points += 1; like(post.postId, 1)" class="button button-like" aria-label="J'aime"></button>
+                    <button v-on:click="post.points -= 1; like(post.postId, -1)" class="button button-dislike" aria-label="Je n'aime pas"></button>
+                    <span>{{ post.points }} points</span>
+                    <span>{{ post.commentNbr }} commentaires</span>
+                </div>
+            </article>
+        </section>
         <div class="container">
-            <section>
-                <article v-for="post in fileBank" :key="post.id" class="post" >
-                    <router-link :to="'/gag/' + post.postId"><h2>{{ post.title }}</h2></router-link>
-                    <router-link :to="'/gag/' + post.postId"><img v-bind:src="post.imageUrl" alt="post" class="img-file" /></router-link>
-                    <div class="container-a">
-                        <button v-on:click="post.points += 1; like(post.postId, 1)" class="button button-like"></button>
-                        <button v-on:click="post.points -= 1; like(post.postId, -1)" class="button button-dislike"></button>
-                        <span>{{ post.points }} points</span>
-                        <span>{{ post.commentNbr }} commentaires</span>
-                    </div>
-                </article>
+            <section v-if="profileOwner == true && admin != true">
+                <button v-on:click="deleteProfile(null)" class="delete">Supprimmer le profil</button>
             </section>
         </div>
         <div class="container left">
-            <section>
+            <section v-if="admin == true">
                 <article>
-                   <ul v-for="profile in profiles" :key="profile.id">
-                       <li>
+                   <ul v-for="profile in profiles" :key="profile.userId">
+                       <li class="container-a">
                            <span>{{ profile.firstname }}</span>
                            <span>{{ profile.lastname }}</span>
                            <span>{{ profile.email }}</span>
-                           <router-link :to="'/profile/' + profile.userId"><button>Profile</button></router-link>
-                           <button>Delete</button>
+                           <button v-on:click="moveToProfile(profile.userId)" class="delete delete-admin">Profile</button>
+                           <button v-on:click="deleteProfile(profile.userId)" class="delete delete-admin">Supprimer</button>
                        </li>
                    </ul>
                 </article>
             </section>
         </div>
-    </div>
+    </main>
 </template>
 
 <script>
@@ -44,7 +48,9 @@
         data() {
             return {
                 fileBank: [],
-                profiles: []
+                profiles: [],
+                profileOwner: false,
+                admin: false
             }
         },
         computed: {
@@ -60,23 +66,27 @@
             id = id[id.length - 1];
             let url = 'http://localhost:3000/api/gag/profile/' + id;
             let options = { method: 'GET', headers: { 'authorization': 'Bearer ' + token } };
-            const res = await fetch(url, options);
+            let res = await fetch(url, options);
             if (res.status == 401) {
                 document.location.href = 'http://localhost:8080/#/auth';
                 return;
             }
             const posts = await res.json();
             this.fileBank = posts;
+            if (res.status == 249)
+                this.admin = true;
             //------------------------------
             url = 'http://localhost:3000/api/auth/admin/';
             options = { method: 'GET', headers: { 'authorization': 'Bearer ' + token } };
-            const res2 = await fetch(url, options);
+            let res2 = await fetch(url, options);
             if (res2.status == 401) {
                 document.location.href = 'http://localhost:8080/#/auth';
                 return;
             }
             const profiles = await res2.json();
             this.profiles = profiles;
+            if (id == JSON.parse(token).userId)
+                this.profileOwner = true;
         },
         props: {
 
@@ -94,6 +104,31 @@
                 const res = await fetch(url, options);
                 if (res.status == 401)
                     document.location.href = 'http://localhost:8080/#/auth';
+            },
+            async deleteProfile(profileId) {
+                const token = localStorage.getItem('Token');
+                if (token == null) {
+                    document.location.href = 'http://localhost:8080/#/auth';
+                    return;
+                }
+                let id = window.location.href.split('/');
+                id = id[id.length - 1];
+                if (profileId != null) {
+                    id = profileId;
+
+                }
+                console.log(id);
+                let url = 'http://localhost:3000/api/auth/delete/' + id;
+                let options = { method: 'DELETE', headers: { 'Content-Type': 'application/json', 'authorization': 'Bearer ' + token } };
+                const res = await fetch(url, options);
+                if (res.status == 200) {
+                    localStorage.removeItem('Token');
+                    document.location.href = 'http://localhost:8080/#/auth';
+                }
+            },
+            moveToProfile(userId) {
+                document.location.href = 'http://localhost:8080/#/profile/' + userId;
+                document.location.reload();
             }
         }
     }
@@ -127,13 +162,9 @@
         max-height: 500px;
     }
 
-    @media (max-width: 1024px) {
-        .img-file {
-            max-width: 310px;
-            max-height: 310px;
-        }
+    h1 {
+        font-size: 2em;
     }
-
     a {
         color: white;
         text-decoration: none;
@@ -161,5 +192,34 @@
     }
     li {
         display: flex;
+    }
+
+    .delete {
+        background-color: #FF4C33;
+        height: 40px;
+        border: 1px solid white;
+        border-radius: 3px;
+        color: black;
+    }
+
+    .delete-admin {
+        height: 20px;
+    }
+
+    @media (max-width: 1024px) {
+        .img-file {
+            max-width: 310px;
+            max-height: 310px;
+        }
+    }
+
+    @media (max-width: 320px) {
+        .img-file {
+            max-width: 100%;
+        }
+
+        .post {
+            width: 94%;
+        }
     }
 </style>

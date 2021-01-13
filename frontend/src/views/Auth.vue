@@ -1,6 +1,7 @@
 <template>
-    <div class="container">
-        <img src="@/assets/icon-left-font-monochrome-white.png" alt="Groupomania Logo" class="Logo" />
+    <main class="container">
+        <img src="@/assets/icon-left-font-monochrome-white-slim.png" alt="Groupomania Logo" class="Logo" />
+        <h1>Veuillez-vous incrire ou vous connecter</h1>
         <div class="form-div">
             <h2>Authentification</h2>
             <form v-on:submit.prevent="login" class="form" id="login">
@@ -21,27 +22,27 @@
             <h2>Inscription</h2>
             <form v-on:submit.prevent="signUp" class="form" id="signup">
                 <div class="form">
-                    <label for="lastname">Nom: </label>
-                    <input type="text" name="lastname" id="lastname" required>
+                    <label for="fistname">Pr&#233;nom: </label>
+                    <input type="text" name="firstname" id="firstname" aria-label="Prénom" required>
                 </div>
                 <div class="form">
-                    <label for="fistname">Pr&#233;nom: </label>
-                    <input type="text" name="firstname" id="firstname" required>
+                    <label for="lastname">Nom: </label>
+                    <input type="text" name="lastname" id="lastname" aria-label="Nom de famille" required>
                 </div>
                 <div class="form">
                     <label for="email">Adresse mail: </label>
-                    <input type="email" name="email" id="email" required>
+                    <input type="email" name="email" id="email" aria-label="adresse e-mail" required>
                 </div>
                 <div class="form">
                     <label for="password">Mot de passe: </label>
-                    <input type="password" name="password" id="password" required>
+                    <input type="password" name="password" id="password" aria-label="mot de passe" required>
                 </div>
                 <div>
-                    <input type="submit" value="S'inscrire" />
+                    <input type="submit" value="S'inscrire" aria-label="S'inscrire"/>
                 </div>
             </form>
         </div>
-    </div>
+    </main>
 </template>
 
 <script>
@@ -72,7 +73,17 @@
                 let options = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payload };
                 const res = await fetch(url, options);
                 if (res.status == 201) {
-                    // Va chier
+                    const payload = JSON.stringify({ 'email': form.email.value, 'password': form.password.value });
+                    let url = 'http://localhost:3000/api/auth/login';
+                    let options = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payload };
+                    const res = await fetch(url, options);
+                    const data = await res.json();
+                    if (res.status == 201) {
+                        localStorage.setItem('Token', JSON.stringify(data));
+                        document.location.href = "http://localhost:8080/";
+                    }
+                    else
+                        alert('Email ou mot de passe incorrect.')
                 }
                 else
                     alert('An error has occured');
@@ -117,10 +128,16 @@
     }
 
     .form-div {
-        padding: 10px;
+        padding: 1px;
         border: 1px solid grey;
         border-radius: 2px 2px;
         margin-bottom: 100px;
         width: 315px;
+    }
+
+    @media (max-width: 425px) {
+        .form-div {
+            border: none;
+        }
     }
 </style>

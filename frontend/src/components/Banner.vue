@@ -6,8 +6,7 @@
         <div class="nav-button">
             <router-link to="/post" class="nav-button">Poster</router-link>
             <router-link :to="'/profile/' + getUserId" class="nav-button">Profil</router-link>
-            <router-link to="/auth">Login</router-link>
-            <button v-on:click="logout">Logout</button>
+            <button v-on:click="logout" class="logout">Se déconnecter</button>
         </div>
     </nav>
 </template>
@@ -49,6 +48,22 @@
     }
 
     .nav-button {
-        margin: 0px 20px;
+        margin: 0px 10px;
+    }
+
+    .logout {
+        background: none;
+        color: white;
+        border: none;
+        font-size: 1.05em;
+    }
+    .logout:hover {
+        cursor: pointer;
+    }
+
+    @media (max-width: 425px) {
+        .navigation {
+            flex-direction: column;
+        }
     }
 </style>

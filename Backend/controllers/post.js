@@ -4,11 +4,12 @@ var db = mysql.createConnection({
     host: 'localhost',
     user: 'root',
     //password: 'secret',
-    database: 'groupomania'
+    database: 'groupomaniadatabase'
 });
 
 // CREATE
-exports.create = (req, res, next) => {
+exports.createPost = (req, res, next) => {
+    console.log('Creating a post');
     const formData = JSON.parse(req.body.payload);
     const post = [
         formData.userId,
@@ -26,24 +27,44 @@ exports.create = (req, res, next) => {
 };
 
 exports.createComment = (req, res, next) => {
-    const comment = [
-        req.body.userId,
-        req.params.id,
-        'oops',
-        0,
-        req.body.commentValue
-    ]
-    let sql = "INSERT INTO `comments` (`userId`, `postId`, `posterName`, `commentPoints`, `commentValue`) VALUES (?, ?, ?, ?, ?);";
-    db.query(sql, comment, (err, result) => {
-        if (err) throw err;
-        res.status(201).json(comment);
+    console.log('Creating a comment');
+    const token = JSON.parse(req.headers.authorization.split(' ')[1]);
+    const userId = token.userId;
+    let sql = "SELECT * FROM users WHERE userId = ?;";
+    db.query(sql, [userId], (err, result) => {
+        const posterName = result[0].firstname + ' ' + result[0].lastname;
+        const comment = [
+            userId,
+            req.params.id,
+            posterName,
+            0,
+            req.body.commentValue
+        ]
+        let sql = "UPDATE `posts` SET `commentNbr` = `commentNbr` + 1 WHERE `postId` = ?;";
+        db.query(sql, [req.params.id], (err, result) => {
+            if (err) throw err;
+        });
+        sql = "INSERT INTO `comments` (`userId`, `postId`, `posterName`, `commentPoints`, `commentValue`) VALUES (?, ?, ?, ?, ?);";
+        db.query(sql, comment, (err, result) => {
+            if (err) throw err;
+            const payload = {
+                commentId: result.insertId,
+                commentPoints: 0,
+                commentValue: req.body.commentValue,
+                postId: req.params.id,
+                posterName: posterName,
+                userId: userId,
+            }
+            res.status(201).json(payload);
+        });
     });
+
 };
 
 // READ
-exports.getAll = (req, res, next) => {
-    console.log('serving posts');
-    let sql = "SELECT * FROM posts;";
+exports.getAllPost = (req, res, next) => {
+    console.log('Serving all posts');
+    let sql = "SELECT * FROM posts ORDER BY postId DESC;";
     db.query(sql, (err, result) => {
         if (err) throw err;
         res.status(200).json(result);
@@ -51,7 +72,7 @@ exports.getAll = (req, res, next) => {
 };
 
 exports.getOne = (req, res, next) => {
-    console.log('serving post : ' + req.params.id);
+    console.log('serving post with ID : ' + req.params.id);
     let sql = "SELECT * FROM posts WHERE postId = ?;"
     db.query(sql, [req.params.id], (err, result) => {
         if (err) throw err;
@@ -61,34 +82,30 @@ exports.getOne = (req, res, next) => {
 };
 
 exports.getComments = (req, res, next) => {
-    let sql = "SELECT * FROM comments WHERE postId = ?;";
+    console.log('Serving comment for post :' + req.params.id);
+    let sql = "SELECT * FROM comments WHERE postId = ? ORDER BY commentId DESC;";
     db.query(sql, [req.params.id], (err, result) => {
         if (err) throw err;
         res.status(200).json(result);
     });
-
 };
 
 exports.getMine = (req, res, next) => {
-    console.log('serving post of userId :' + req.params.id);
+    console.log('Serving post of userId :' + req.params.id);
     let sql = "SELECT * FROM posts WHERE userId = ?;"
     db.query(sql, [req.params.id], (err, result) => {
         if (err) throw err;
-        if (req.params.id == '1')
-            res.status(200).json({ message: 'admin' });
+        if (req.params.id == '1') {
+            res.status(249).json({ message: 'admin' });
+        }
         else
             res.status(200).json(result);
     });
 };
 
 // UPDATE
-exports.update = (req, res, next) => {
-    console.log('update ' + req.body);
-    res.status(200);
-};
-
 exports.like = (req, res, next) => {
-    console.log('Liking uncontroled.');
+    console.log('Liking post with ID :' + req.body.postId);
     let like = 0;
     if (req.body.like == 1)
         like = 1;
@@ -102,7 +119,7 @@ exports.like = (req, res, next) => {
 };
 
 exports.commentLike = (req, res, next) => {
-    console.log('Comment Liking uncontroled.');
+    console.log('Liking comment with ID : ' + req.body.commentId);
     let like = 0;
     if (req.body.like == 1)
         like = 1;
@@ -116,7 +133,46 @@ exports.commentLike = (req, res, next) => {
 };
 
 // DELETE
-exports.delete = (req, res, next) => {
-    console.log('delete ' + req.body);
-    res.status(200);
+exports.deletePost = (req, res, next) => {
+    console.log('Deleting post with ID : ' + req.params.id);
+    const userId = (JSON.parse(req.headers.authorization.split(' ')[1])).userId;
+    let sql = "SELECT * FROM posts WHERE postId = ?";
+    db.query(sql, [req.params.id], (err, result) => {
+        if (err) throw err;
+        if (result[0] && userId == result[0].userId) {
+            let sql = "DELETE FROM posts WHERE postId = ?";
+            db.query(sql, [req.params.id], (err, result) => {
+                if (err) throw err;
+            });
+            sql = "DELETE FROM comments WHERE postId = ?";
+            db.query(sql, [req.params.id], (err, result) => {
+                if (err) throw err;
+            });
+            res.status(200).json({ message: 'post deleted' });
+        }
+        else
+            res.status(401).json({ message: 'wrong owner' });
+    })
+};
+
+exports.deleteComment = (req, res, next) => {
+    console.log('Deleting comment with ID : ' + req.params.id);
+    const userId = (JSON.parse(req.headers.authorization.split(' ')[1])).userId;
+    let sql = "SELECT * FROM comments WHERE commentId = ?";
+    db.query(sql, [req.params.id], (err, result) => {
+        if (err) throw err;
+        if (result[0] && userId == result[0].userId) {
+            sql = "DELETE FROM comments WHERE commentId = ?";
+            db.query(sql, [req.params.id], (err, result) => {
+                if (err) throw err;
+            });
+            sql = "UPDATE `posts` SET `commentNbr` = (`commentNbr` - 1) WHERE postId = ?";
+            db.query(sql, [result[0].postId], (err, result) => {
+                if (err) throw err;
+            });
+            res.status(200).json({ message: 'comment deleted.' });
+        }
+        else
+            res.status(401).json({ message: 'wrong owner' });
+    })
 };

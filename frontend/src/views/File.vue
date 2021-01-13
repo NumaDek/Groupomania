@@ -3,19 +3,20 @@
         <Banner />
         <section class="container">
             <article class="post">
-                <h2>{{ file.title }}</h2>
+                <h1>{{ file.title }}</h1>
                 <p>{{ file.description }}</p>
                 <img v-bind:src="file.imageUrl" alt="post" class="img-file" />
                 <div class="container-a">
-                    <button v-on:click="file.points += 1; like(file.postId, 1)" class="like"></button>
-                    <button v-on:click="file.points -= 1; like(file.postId, -1)" class="dislike"></button>
+                    <button v-on:click="file.points += 1; like(file.postId, 1)" class="like" aria-label="J'aime" :id="file.postId + '+'"></button>
+                    <button v-on:click="file.points -= 1; like(file.postId, -1)" class="dislike" aria-label="Je n'aime pas" :id="file.postId + '-'"></button>
                     <span>{{ file.points }} points</span>
                     <span>{{ file.commentNbr }} commentaires</span>
+                    <button v-if="owner == true" v-on:click="deletePost" class="delete">Supprimer</button>
                 </div>
             </article>
         </section>
         <section class="container">
-            <article>
+            <article class="post">
                 <form v-on:submit.prevent="comment" id="form" class="form">
                     <div class="form">
                         <label for="comment">Commenter :</label><br />
@@ -30,8 +31,8 @@
             </article>
         </section>
         <section class="container">
-            <article v-for="comment in comments" :key="comment.commentId">
-                <Comments v-bind:poster="comment.posterName" v-bind:comment="comment.commentValue" v-bind:commentPoints="comment.commentPoints" v-bind:commentId="comment.commentId"/>
+            <article v-for="comment in comments" :key="comment.commentId" class="post">
+                <Comments v-bind:poster="comment.posterName" v-bind:comment="comment.commentValue" v-bind:commentPoints="comment.commentPoints" v-bind:commentId="comment.commentId" v-bind:commentUserId="comment.userId"/>
             </article>
         </section>
         <footer></footer>
@@ -55,7 +56,8 @@
                     points: 0,
                     commentNbr: 0
                 },
-                comments: []
+                comments: [],
+                owner : false
             };
         },
         computed: {
@@ -65,18 +67,34 @@
 
         },
         methods: {
-            async like(id, like) {
+            async like(postId, like) {
                 const token = localStorage.getItem('Token');
                 if (token == null) {
                     document.location.href = 'http://localhost:8080/#/auth';
                     return;
                 }
-                const payload = JSON.stringify({ 'postId': id, 'like': like });
+                const payload = JSON.stringify({ 'postId': postId, 'like': like });
                 let url = 'http://localhost:3000/api/gag/like';
                 let options = { method: 'POST', headers: { 'Content-Type': 'application/json', 'authorization': 'Bearer ' + token }, body: payload };
                 const res = await fetch(url, options);
                 if (res.status == 401)
                     document.location.href = 'http://localhost:8080/#/auth';
+                if (like == 1) {
+                    const buttonPlus = document.getElementById(postId + '+');
+                    buttonPlus.disabled = true;
+                    buttonPlus.style.opacity = 0.3;
+                    const buttonMinus = document.getElementById(postId + '-');
+                    buttonMinus.disabled = false;
+                    buttonMinus.style.opacity = 1;
+                }
+                if (like == -1) {
+                    const buttonMinus = document.getElementById(postId + '-');
+                    buttonMinus.disabled = true;
+                    buttonMinus.style.opacity = 0.3;
+                    const buttonPlus = document.getElementById(postId + '+');
+                    buttonPlus.disabled = false;
+                    buttonPlus.style.opacity = 1;
+                }
             },
             async comment() {
                 const token = localStorage.getItem('Token');
@@ -92,9 +110,22 @@
                 let options = { method: 'POST', body: payload, headers: { 'Content-Type': 'application/json', 'authorization': 'Bearer ' + token } };
                 const res = await fetch(url, options);
                 const comment = await res.json();
-                this.comments.push(comment);
+                this.file.commentNbr += 1;
+                this.comments.unshift(comment);
                 const textarea = document.getElementById('comment');
                 textarea.value = "";
+            },
+            async deletePost() {
+                const token = localStorage.getItem('Token');
+                if (token == null) {
+                    document.location.href = 'http://localhost:8080/#/auth';
+                    return;
+                }
+                let url = 'http://localhost:3000/api/gag/delete/' + this.file.postId;
+                let options = { method: 'DELETE', headers: { 'Content-Type': 'application/json', 'authorization': 'Bearer ' + token } };
+                const res = await fetch(url, options);
+                if (res.status == 200)
+                    document.location.href = 'http://localhost:8080/';
             }
         },
         created: async function () {
@@ -104,7 +135,7 @@
                 return;
             }
             let id = window.location.href.split('/');
-            let url = 'http://localhost:3000/api/gag/' + id[id.length - 1];
+            let url = 'http://localhost:3000/api/gag/one/' + id[id.length - 1];
             let options = { method: 'GET', headers: { 'authorization': 'Bearer ' + token } };
             const res = await fetch(url, options);
             if (res.status == 401) {
@@ -113,12 +144,8 @@
             }
             const data = await res.json();
             this.file = data;
-            //this.id = data.id;
-            //this.title = data.title;
-            //this.imageUrl = data.imageUrl;
-            //this.points = data.points;
-            //this.commentNbr = data.commentNbr;
-
+            if (this.file.userId == JSON.parse(token).userId)
+                this.owner = true;
             url = 'http://localhost:3000/api/gag/comments/' + id[id.length - 1];
             options = { method: 'GET', headers: { 'authorization': 'Bearer ' + token } };
             const res1 = await fetch(url, options);
@@ -148,23 +175,21 @@
     .container-a {
         display: flex;
         align-items: center;
+        flex-wrap: wrap;
+        justify-content: center;
     }
 
     .post {
         padding-bottom: 20px;
         border-bottom: 1px solid #808080;
+        display: flex;
+        flex-direction: column;
+        align-content: center;
+        flex-wrap: wrap;
     }
 
     .img-file {
         width: 500px;
-        max-height: 500px;
-    }
-
-    @media (max-width: 1024px) {
-        .img-file {
-            max-width: 310px;
-            max-height: 310px;
-        }
     }
 
     a {
@@ -198,7 +223,7 @@
         border: 1px solid #404040;
         padding: 4px;
         color: white;
-        width: 490px;
+        width: 500px;
         height: 75px;
     }
     footer {
@@ -206,5 +231,56 @@
     }
     div .form {
         margin: 10px 10px;
+    }
+
+    .delete {
+        background-color: #FF4C33;
+        height: 40px;
+        border: 1px solid white;
+        border-radius: 3px;
+        color: black;
+    }
+
+    @media (max-width: 1024px) {
+        .img-file {
+            max-width: 100%;
+        }
+
+        section {
+        }
+
+        textarea {
+            width: 90%;
+        }
+
+        .post {
+            width: 94%;
+        }
+
+        .form {
+            width: 100%;
+        }
+    }
+
+    @media (max-width: 320px) {
+        .img-file {
+            max-width: 100%;
+        }
+
+        section {
+
+        }
+
+        textarea {
+            width: 90%;
+        }
+
+        .post {
+            width: 94%;
+        }
+
+        .form {
+           width: 100%;
+        }
     }
 </style>

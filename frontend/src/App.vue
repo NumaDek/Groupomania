@@ -25,4 +25,10 @@
             max-width: 100%;
         }
     }
+
+    @media (max-height: 320) {
+        main {
+            width: 50%;
+        }
+    }
 </style>

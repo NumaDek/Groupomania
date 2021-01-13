@@ -1,12 +1,12 @@
 <template>
-    <main class="container">
-        <section>
+    <main>
+        <section class="container">
             <article v-for="post in fileBank" :key="post.id" class="post">
-                <router-link :to="'/gag/' + post.postId"><h2>{{ post.title }}</h2></router-link>
-                <router-link :to="'/gag/' + post.postId"><img v-bind:src="post.imageUrl" alt="post" class="img-file" /></router-link>
+                <router-link :to="'/gag/' + post.postId"><h1>{{ post.title }}</h1>
+                <img v-bind:src="post.imageUrl" alt="post" class="img-file" /></router-link>
                 <div class="container-a">
-                    <button v-on:click="post.points += 1; like(post.postId, 1)" class="button button-like"></button>
-                    <button v-on:click="post.points -= 1; like(post.postId, -1)" class="button button-dislike"></button>
+                    <button v-on:click="post.points += 1; like(post.postId, 1)" class="button button-like" aria-label="J'aime" :id="post.postId + '+'"></button>
+                    <button v-on:click="post.points -= 1; like(post.postId, -1)" class="button button-dislike" aria-label="Je n'aime pas" :id="post.postId + '-'"></button>
                     <span>{{ post.points }} points</span>
                     <span>{{ post.commentNbr }} commentaires</span>
                 </div>
@@ -58,6 +58,32 @@
                 const res = await fetch(url, options);
                 if (res.status == 401)
                     document.location.href = 'http://localhost:8080/#/auth';
+                let file;
+                for (file of this.fileBank) {
+                    if (file.postId == postId) {
+                        file = {
+                            ...file,
+                            liked: like
+                            
+                        }
+                    }
+                }
+                if (like == 1) {
+                    const buttonPlus = document.getElementById(postId + '+');
+                    buttonPlus.disabled = true;
+                    buttonPlus.style.opacity = 0.3;
+                    const buttonMinus = document.getElementById(postId + '-');
+                    buttonMinus.disabled = false;
+                    buttonMinus.style.opacity = 1;
+                }
+                if (like == -1) {
+                    const buttonMinus = document.getElementById(postId + '-');
+                    buttonMinus.disabled = true;
+                    buttonMinus.style.opacity = 0.3;
+                    const buttonPlus = document.getElementById(postId + '+');
+                    buttonPlus.disabled = false;
+                    buttonPlus.style.opacity = 1;
+                }
             }
         }
     }
@@ -76,6 +102,7 @@
     .container-a {
         display: flex;
         align-items: center;
+        justify-content: flex-start;
     }
 
     .post {
@@ -86,13 +113,6 @@
     .img-file {
         width: 500px;
         max-height: 500px;
-    }
-
-    @media (max-width: 1024px) {
-        .img-file {
-            max-width: 310px;
-            max-height: 310px;
-        }
     }
 
     a {
@@ -119,5 +139,21 @@
 
     .button-dislike {
         background-image: url('../assets/ArrowDown.png');
+    }
+
+    @media (max-width: 1024px) {
+        .img-file {
+            max-width: 310px;
+            max-height: 310px;
+        }
+    }
+
+    @media (max-width: 320px) {
+        .img-file {
+            max-width: 100%;
+        }
+        .post {
+            width: 94%;
+        }
     }
 </style>

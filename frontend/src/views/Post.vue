@@ -1,26 +1,29 @@
 <template>
-    <div>
+    <main>
         <Banner />
         <div class="container">
-            <form v-on:submit.prevent="submitFile" id="form" class="form">
-                <div class="form">
-                    <label for="title">Titre: </label>
-                    <input type="text" name="title" id="title" required>
-                </div>
-                <div class="form">
-                    <label for="description">description: </label>
-                    <input type="text" name="description" id="description" required>
-                </div>
-                <div class="form">
-                    <label for="file">fichier: </label>
-                    <input type="file" name="file" id="file" required>
-                </div>
-                <div>
-                    <input type="submit" name="image" value="Soumette" />
-                </div>
-            </form>
+            <div class="center">
+                <h1>Poster un fichier</h1>
+                <form v-on:submit.prevent="submitFile" id="form" class="form">
+                    <div class="form">
+                        <label for="title">Titre: </label>
+                        <input type="text" name="title" id="title" required>
+                    </div>
+                    <div class="form">
+                        <label for="description">desc.: </label>
+                        <input type="text" name="description" id="description" required>
+                    </div>
+                    <div class="form">
+                        <label for="file">fichier: </label>
+                        <input type="file" name="file" id="file" class="button" required>
+                    </div>
+                    <div>
+                        <input type="submit" name="image" value="Soumette"/>
+                    </div>
+                </form>
+            </div>
         </div>
-    </div>
+    </main>
 </template>
 
 <script>
@@ -68,18 +71,36 @@
         display: table;
     }
 
+    .center {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        width: 320px;
+    }
     div.form {
         display: table-row;
     }
 
     label, input {
         display: table-cell;
-        margin: 10px 0px 10px 10px;
+        margin: 10px 0px 10px 1px;
     }
 
     .form {
-        padding: 10px;
+        padding: 3px;
         border: 1px solid grey;
         border-radius: 2px 2px;
+        display: flex;
+    }
+
+    @media (max-width: 425px) {
+        .form {
+            border: none;
+            width: 300px;
+            margin-left: 21px;
+        }
+        .container {
+
+        }
     }
 </style>

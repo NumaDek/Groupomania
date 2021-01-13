@@ -8,7 +8,7 @@ var db = mysql.createConnection({
     host: 'localhost',
     user: 'root',
     //password: 'secret',
-    database: 'groupomania'
+    database: 'groupomaniadatabase'
 });
 
 exports.signUp = (req, res, next) => {
@@ -21,13 +21,11 @@ exports.signUp = (req, res, next) => {
     bcrypt.hash(req.body.password, 10)
         .then(hash => {
             const user = [
-                //'azertyuiop' + users.length,
                 req.body.email,
                 req.body.firstname,
                 req.body.lastname,
                 hash,
             ]
-            console.log(user);
             let sql = "INSERT INTO `users`(`email`, `firstname`, `lastname`, `pwd`) VALUES(?, ?, ?, ?);"
             db.query(sql, user, (err, result) => {
                 if (err) {
@@ -73,49 +71,33 @@ exports.getProfiles = (req, res, next) => {
         if (err) throw err;
         if (userId == '1')
             res.status(200).json(result);
+        else
+            res.status(200).json({ message: 'not admin' });
     });
-
 };
 
-const users = [
-    {
-        userId: 'azertyuiop0',
-        firstname: 'Numa',
-        lastname: 'Dekeyser',
-        email: 'numadek@gmail.com',
-        pwd: 'salut',
-        posts: []
-    },
-    {
-        userId: 'azertyuiop1',
-        firstname: 'Numa',
-        lastname: 'Dekeyser',
-        email: 'numadek@free.com',
-        pwd: 'salut',
-        posts: []
-    },
-    {
-        userId: 'azertyuiop2',
-        firstname: 'Numa',
-        lastname: 'Dekeyser',
-        email: 'numadek@tofu.com',
-        pwd: 'salut',
-        posts: []
-    },
-    {
-        userId: 'azertyuiop3',
-        firstname: 'Numa',
-        lastname: 'Dekeyser',
-        email: 'numadek@yo.com',
-        pwd: 'salut',
-        posts: []
-    },
-    {
-        userId: 'azertyuiop3',
-        firstname: 'Numa',
-        lastname: 'Dekeyser',
-        email: 'numadek@yo.com',
-        pwd: 'salut',
-        posts: []
-    },
-]
+exports.deleteProfile = (req, res, next) => {
+    const userId = (JSON.parse(req.headers.authorization.split(' ')[1])).userId;
+    console.log('Deleting profile with ID : ' + userId);
+    let sql = "SELECT * FROM users WHERE userId = ?";
+    db.query(sql, [req.params.id], (err, result) => {
+        if (err) throw err;
+        if (result[0] && ((userId == result[0].userId && userId != 1) || (userId == 1 && userId != result[0].userId))) {
+            let sql = "DELETE FROM posts WHERE userId = ?";
+            db.query(sql, [req.params.id], (err, result) => {
+                if (err) throw err;
+            });
+            sql = "DELETE FROM users WHERE userId = ?";
+            db.query(sql, [req.params.id], (err, result) => {
+                if (err) throw err;
+            });
+            sql = "DELETE FROM comments WHERE userId = ?";
+            db.query(sql, [req.params.id], (err, result) => {
+                if (err) throw err;
+            });
+            res.status(200).json({ message: 'post deleted' });
+        }
+        else
+            res.status(401).json({ message: 'wrong owner' });
+    })
+};
